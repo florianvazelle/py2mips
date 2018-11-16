@@ -1,0 +1,326 @@
+0	parser646	=	(parser647)
+1	parser647	=	(prog Leof)
+2	prog	=	(instr)
+3	prog	=	(instr Lnl prog)
+4	instr	=	(Lvar Lassign sexpr)
+5	sexpr	=	(atom)
+6	sexpr	=	(operation)
+7	sexpr	=	(Lopar sexpr Lcpar)
+8	atom	=	(Lstr)
+9	atom	=	(Lnum)
+10	atom	=	(Lvar)
+11	operation	=	(sexpr Ladd sexpr)
+12	operation	=	(sexpr Lsub sexpr)
+13	operation	=	(sexpr Lmul sexpr)
+14	operation	=	(sexpr Ldiv sexpr)
+15	operation	=	(sexpr Lmod sexpr)
+State 0
+	parser646 -> . parser647 
+
+	Lvar					shift	4
+	prog					goto	2
+	instr					goto	3
+	parser647					goto	1
+
+State 1
+	parser646 -> parser647 . 
+
+
+State 2
+	parser647 -> prog . Leof 
+
+	Leof					accept	
+
+State 3
+	prog -> instr . 
+	prog -> instr . Lnl prog 
+
+	Lnl					shift	6
+	Leof					reduce	2
+
+State 4
+	instr -> Lvar . Lassign sexpr 
+
+	Lassign					shift	7
+
+State 5
+	parser647 -> prog Leof . 
+
+
+State 6
+	prog -> instr Lnl . prog 
+
+	Lvar					shift	4
+	prog					goto	8
+	instr					goto	3
+
+State 7
+	instr -> Lvar Lassign . sexpr 
+
+	Lvar					shift	15
+	Lopar					shift	12
+	atom					goto	10
+	Lnum					shift	14
+	operation					goto	11
+	sexpr					goto	9
+	Lstr					shift	13
+
+State 8
+	prog -> instr Lnl prog . 
+
+	Leof					reduce	3
+
+State 9
+	instr -> Lvar Lassign sexpr . 
+	operation -> sexpr . Ladd sexpr 
+	operation -> sexpr . Lsub sexpr 
+	operation -> sexpr . Lmul sexpr 
+	operation -> sexpr . Ldiv sexpr 
+	operation -> sexpr . Lmod sexpr 
+
+	Ldiv					shift	19
+	Lmul					shift	18
+	Lmod					shift	20
+	Leof					reduce	4
+	Ladd					shift	16
+	Lsub					shift	17
+	Lnl					reduce	4
+
+State 10
+	sexpr -> atom . 
+
+	Lmul					reduce	5
+	Lmod					reduce	5
+	Ldiv					reduce	5
+	Ladd					reduce	5
+	Lcpar					reduce	5
+	Lsub					reduce	5
+	Lnl					reduce	5
+	Leof					reduce	5
+
+State 11
+	sexpr -> operation . 
+
+	Lmul					reduce	6
+	Lmod					reduce	6
+	Ldiv					reduce	6
+	Ladd					reduce	6
+	Lcpar					reduce	6
+	Lsub					reduce	6
+	Lnl					reduce	6
+	Leof					reduce	6
+
+State 12
+	sexpr -> Lopar . sexpr Lcpar 
+
+	Lvar					shift	15
+	Lopar					shift	12
+	atom					goto	10
+	Lnum					shift	14
+	operation					goto	11
+	sexpr					goto	21
+	Lstr					shift	13
+
+State 13
+	atom -> Lstr . 
+
+	Lmul					reduce	8
+	Lmod					reduce	8
+	Ldiv					reduce	8
+	Ladd					reduce	8
+	Lcpar					reduce	8
+	Lsub					reduce	8
+	Lnl					reduce	8
+	Leof					reduce	8
+
+State 14
+	atom -> Lnum . 
+
+	Lmul					reduce	9
+	Lmod					reduce	9
+	Ldiv					reduce	9
+	Ladd					reduce	9
+	Lcpar					reduce	9
+	Lsub					reduce	9
+	Lnl					reduce	9
+	Leof					reduce	9
+
+State 15
+	atom -> Lvar . 
+
+	Lmul					reduce	10
+	Lmod					reduce	10
+	Ldiv					reduce	10
+	Ladd					reduce	10
+	Lcpar					reduce	10
+	Lsub					reduce	10
+	Lnl					reduce	10
+	Leof					reduce	10
+
+State 16
+	operation -> sexpr Ladd . sexpr 
+
+	Lvar					shift	15
+	Lopar					shift	12
+	atom					goto	10
+	Lnum					shift	14
+	operation					goto	11
+	sexpr					goto	22
+	Lstr					shift	13
+
+State 17
+	operation -> sexpr Lsub . sexpr 
+
+	Lvar					shift	15
+	Lopar					shift	12
+	atom					goto	10
+	Lnum					shift	14
+	operation					goto	11
+	sexpr					goto	23
+	Lstr					shift	13
+
+State 18
+	operation -> sexpr Lmul . sexpr 
+
+	Lvar					shift	15
+	Lopar					shift	12
+	atom					goto	10
+	Lnum					shift	14
+	operation					goto	11
+	sexpr					goto	24
+	Lstr					shift	13
+
+State 19
+	operation -> sexpr Ldiv . sexpr 
+
+	Lvar					shift	15
+	Lopar					shift	12
+	atom					goto	10
+	Lnum					shift	14
+	operation					goto	11
+	sexpr					goto	25
+	Lstr					shift	13
+
+State 20
+	operation -> sexpr Lmod . sexpr 
+
+	Lvar					shift	15
+	Lopar					shift	12
+	atom					goto	10
+	Lnum					shift	14
+	operation					goto	11
+	sexpr					goto	26
+	Lstr					shift	13
+
+State 21
+	sexpr -> Lopar sexpr . Lcpar 
+	operation -> sexpr . Ladd sexpr 
+	operation -> sexpr . Lsub sexpr 
+	operation -> sexpr . Lmul sexpr 
+	operation -> sexpr . Ldiv sexpr 
+	operation -> sexpr . Lmod sexpr 
+
+	Ladd					shift	16
+	Ldiv					shift	19
+	Lcpar					shift	27
+	Lmul					shift	18
+	Lmod					shift	20
+	Lsub					shift	17
+
+State 22
+	operation -> sexpr . Ladd sexpr 
+	operation -> sexpr Ladd sexpr . 
+	operation -> sexpr . Lsub sexpr 
+	operation -> sexpr . Lmul sexpr 
+	operation -> sexpr . Ldiv sexpr 
+	operation -> sexpr . Lmod sexpr 
+
+	Lmul					shift	18
+	Lmod					reduce	11
+	Ldiv					shift	19
+	Ladd					reduce	11
+	Lcpar					reduce	11
+	Lsub					shift	17
+	Lnl					reduce	11
+	Leof					reduce	11
+
+State 23
+	operation -> sexpr . Ladd sexpr 
+	operation -> sexpr . Lsub sexpr 
+	operation -> sexpr Lsub sexpr . 
+	operation -> sexpr . Lmul sexpr 
+	operation -> sexpr . Ldiv sexpr 
+	operation -> sexpr . Lmod sexpr 
+
+	Lmul					shift	18
+	Lmod					reduce	12
+	Ldiv					shift	19
+	Ladd					reduce	12
+	Lcpar					reduce	12
+	Lsub					reduce	12
+	Lnl					reduce	12
+	Leof					reduce	12
+
+State 24
+	operation -> sexpr . Ladd sexpr 
+	operation -> sexpr . Lsub sexpr 
+	operation -> sexpr . Lmul sexpr 
+	operation -> sexpr Lmul sexpr . 
+	operation -> sexpr . Ldiv sexpr 
+	operation -> sexpr . Lmod sexpr 
+
+	Lmul					reduce	13
+	Lmod					reduce	13
+	Ldiv					shift	19
+	Ladd					reduce	13
+	Lcpar					reduce	13
+	Lsub					reduce	13
+	Lnl					reduce	13
+	Leof					reduce	13
+
+State 25
+	operation -> sexpr . Ladd sexpr 
+	operation -> sexpr . Lsub sexpr 
+	operation -> sexpr . Lmul sexpr 
+	operation -> sexpr . Ldiv sexpr 
+	operation -> sexpr Ldiv sexpr . 
+	operation -> sexpr . Lmod sexpr 
+
+	Lmul					reduce	14
+	Lmod					reduce	14
+	Ldiv					reduce	14
+	Ladd					reduce	14
+	Lcpar					reduce	14
+	Lsub					reduce	14
+	Lnl					reduce	14
+	Leof					reduce	14
+
+State 26
+	operation -> sexpr . Ladd sexpr 
+	operation -> sexpr . Lsub sexpr 
+	operation -> sexpr . Lmul sexpr 
+	operation -> sexpr . Ldiv sexpr 
+	operation -> sexpr . Lmod sexpr 
+	operation -> sexpr Lmod sexpr . 
+
+	Lmul					shift	18
+	Lmod					reduce	15
+	Ldiv					shift	19
+	Ladd					shift	16
+	Lcpar					reduce	15
+	Lsub					shift	17
+	Lnl					reduce	15
+	Leof					reduce	15
+
+State 27
+	sexpr -> Lopar sexpr Lcpar . 
+
+	Lmul					reduce	7
+	Lmod					reduce	7
+	Ldiv					reduce	7
+	Ladd					reduce	7
+	Lcpar					reduce	7
+	Lsub					reduce	7
+	Lnl					reduce	7
+	Leof					reduce	7
+
