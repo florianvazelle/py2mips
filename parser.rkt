@@ -1,4 +1,4 @@
-#lang racket/base
+ #lang racket/base
 
 (require parser-tools/yacc
          ;; ast est le fichier qui contient l'ensemble des structure aui serviront au parser
@@ -20,7 +20,8 @@
      ((instr Lnl prog)   (cons $1 $3)))
 
     (instr
-     ((Lvar Lassign sexpr)        (Passign $1 $3)))
+     ((Lvar Lassign sexpr)        (Passign $1 $3))
+     ((Lif sexpr)                 (Pcond )))
 
     (sexpr ;; single-expr
      ((atom)              $1)
@@ -39,14 +40,34 @@
      ((sexpr Lmul sexpr) (Pop 'mul $1 $3))
      ((sexpr Ldiv sexpr) (Pop 'div $1 $3))
      ((sexpr Lmod sexpr) (Pop 'mod $1 $3))
+
+     ((sexpr Leq sexpr)  (Pcond '== $1 $3))
+     ((sexpr Lneq sexpr) (Pcond '!= $1 $3))
+     ((sexpr Llt sexpr)  (Pcond '<  $1 $3))
+     ((sexpr Lgt sexpr)  (Pcond '>  $1 $3))
+     ((sexpr Llte sexpr) (Pcond '<= $1 $3))
+     ((sexpr Lgte sexpr) (Pcond '>= $1 $3))
+
+     ((sexpr Land sexpr) (Pcond 'and $1 $3))
+     ((sexpr Lor sexpr)  (Pcond 'or  $1 $3))
     ))
 
    (precs
-    (left Lmod)
-    (left Ladd)
-    (left Lsub)
-    (left Lmul)
-    (left Ldiv))
+     (left Lor)
+     (left Land)
+
+     (left Leq)
+     (left Lneq)
+     (left Llt)
+     (left Lgt)
+     (left Llte)
+     (left Lgte)
+
+     (left Lmod)
+     (left Ladd)
+     (left Lsub)
+     (left Lmul)
+     (left Ldiv))
    (debug "yacc.dbg")
    (error
     (lambda (ok? name value s-pos e-pos)

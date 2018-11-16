@@ -19,10 +19,19 @@
       ('sub (- (eval-instr v1 env) (eval-instr v2 env)))
       ('mul (* (eval-instr v1 env) (eval-instr v2 env)))
       ('div (/ (eval-instr v1 env) (eval-instr v2 env)))
-      ('mod (modulo (eval-instr v1 env) (eval-instr v2 env)))
-      ))
+      ('mod (modulo (eval-instr v1 env) (eval-instr v2 env)))))
+    ((Pcond op v1 v2)
+     (match op                      ;;penser a verifier les types dans l'analyze
+       ('and (and (eval-instr v1 env) (eval-instr v2 env)))
+       ('or (or (eval-instr v1 env) (eval-instr v2 env)))
 
-
+       ('== (eq? (eval-instr v1 env) (eval-instr v2 env)))
+       ('!= (not (eq? (eval-instr v1 env) (eval-instr v2 env))))
+       ('< (< (eval-instr v1 env) (eval-instr v2 env)))
+       ('> (> (eval-instr v1 env) (eval-instr v2 env)))
+       ('<= (<= (eval-instr v1 env) (eval-instr v2 env)))
+       ('>= (>= (eval-instr v1 env) (eval-instr v2 env)))
+       ))
       ))
 
 (define (myeval prog env)

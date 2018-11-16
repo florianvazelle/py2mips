@@ -26,7 +26,7 @@
 ))
 
 (define-empty-tokens fonctions
-  (Lprint Lwhile))
+  (Lwhile))
 
 (define-empty-tokens ponctuations
   (Lopar Lcpar ;; parenthese ouvrante et fermante
@@ -68,35 +68,40 @@
    (#\newline	   (token-Lnl))
    (#\space      (return-without-pos (mylexer input-port)))
 
+   ;; boucle
+   ;("while"    (token-Lwhile))
+
    ;; condition
    ;("if"       (token-Lif))
    ;("elif"     (token-Lelif))
    ;("else"     (token-Lelse))
-   ;("=="       (token-Leq))
-   ;("!="       (token-Lneq))
-   ;("<"        (token-Llt))
-   ;(">"        (token-Lgt))
-   ;("<="       (token-Llte))
-   ;(">="       (token-Lgte))
    ;(":"        (token-Lcol))
 
-   ;("and"      (token-Land))
-   ;("or"       (token-Lor))
+   ;; boolean
+   ("=="       (token-Leq))
+   ("!="       (token-Lneq))
+   ("<"        (token-Llt))
+   (">"        (token-Lgt))
+   ("<="       (token-Llte))
+   (">="       (token-Lgte))
 
-   ;("print"    (token-Lprint))
-   ;("("        (token-Lopar))
-   ;(")"        (token-Lcpar))
-   ("\""        (token-Lstr (apply string-append (string-mylexer input-port))))
-   ("#"         (return-without-pos (comment-mylexer input-port))) ;; pour ignorer les commentaires
+   ("and"      (token-Land))
+   ("or"       (token-Lor))
 
-   ;("while"    (token-Lwhile))
+   ;; other
+   ("("        (token-Lopar))
+   (")"        (token-Lcpar))
+   ("\""       (token-Lstr (apply string-append (string-mylexer input-port))))
+   ("#"        (return-without-pos (comment-mylexer input-port))) ;; pour ignorer les commentaires
 
+   ;; operation
    ("+"        (token-Ladd))
    ("-"        (token-Lsub))
    ("*"        (token-Lmul))
    ("/"        (token-Ldiv))
    ("%"        (token-Lmod))
 
+   ;; assignement
    ("="        (token-Lassign))
 
    (number   (token-Lnum (string->number lexeme)))
