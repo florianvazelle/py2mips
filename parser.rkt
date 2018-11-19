@@ -20,8 +20,7 @@
      ((instr Lnl prog)   (cons $1 $3)))
 
     (instr
-     ((Lvar Lassign sexpr)        (Passign $1 $3))
-     ((Lif sexpr)                 (Pcond )))
+     ((Lvar Lassign sexpr)        (Passign $1 $3)))
 
     (sexpr ;; single-expr
      ((atom)              $1)

@@ -18,5 +18,5 @@
 ;;; Identifiant
 (struct Pid     (id)         #:transparent)
 
-;;; Com
-(struct Pcond   (id v1 v2)    #:transparent)
+;;; Boolean
+(struct Pcond   (id v1 v2)   #:transparent)
