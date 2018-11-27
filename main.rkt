@@ -1,7 +1,8 @@
 #lang racket/base
 
 (require "parser.rkt"
-	       "eval.rkt")
+	       "analyze.rkt"
+				 "compile.rkt")
 
 ;; debut du programme
 
@@ -19,21 +20,19 @@
 
    (close-input-port in)
    ;; on indique a l'utilisateur que le parsing c'est bien deroule
-   (printf "Parsing ok.")
+   (printf "Parsing ok.\n")
 
-   ;;pour le debug on va affiche le resultat du parser (a enlever)
-   (newline)
-   (write parsed)
+   ;;pour le debug on va affiche le resultat du parser
+   ;(write parsed)
 
-   ;; on saute une ligne
-   (newline)
-
-   (myeval parsed (make-immutable-hash))
+   (analyze parsed (make-immutable-hash))
    ;;(write prog)
-   ;;(printf "Typing ok.\n")
+   (printf "Typing ok.\n")
+
+	 (compile2mips parsed (make-immutable-hash))
 
    ;; on quitte
-   ;(exit 0)
+   (exit 0)
    )
   ;; sinon
   (else
