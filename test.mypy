@@ -1,7 +1,0 @@
-a = 3
-b =a+ 3
-c=b%a
-#je suis un commentaire
-d = 2 ==2
-a=2>=3
-e = a or b

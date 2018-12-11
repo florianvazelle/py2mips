@@ -4,6 +4,8 @@
 	       "analyze.rkt"
 				 "compile.rkt")
 
+(define debug #f)
+
 ;; debut du programme
 
 (define argv (current-command-line-arguments))
@@ -20,16 +22,17 @@
 
    (close-input-port in)
    ;; on indique a l'utilisateur que le parsing c'est bien deroule
-   (printf "Parsing ok.\n")
+   (cond (debug (printf "Parsing ok.\n")))
 
    ;;pour le debug on va affiche le resultat du parser
-   ;(write parsed)
+   (cond (debug (write parsed)))
+	 (cond (debug (newline)))
 
    (analyze parsed (make-immutable-hash))
    ;;(write prog)
-   (printf "Typing ok.\n")
+   (cond (debug (printf "Typing ok.\n")))
 
-	 (compile2mips parsed (make-immutable-hash))
+	 (compile2mips parsed (make-hash '((nl . "\n"))))
 
    ;; on quitte
    (exit 0)

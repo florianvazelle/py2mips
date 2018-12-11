@@ -3,13 +3,15 @@
 (provide (all-defined-out))
 
 ;;;;; MIPS
+(struct Add     (out val1 val2)) ;; Add (with overflow)
+(struct Lw      (out src))       ;; Load word
+
 
 (struct Move    (rd rs))
 (struct Li      (r i))
 (struct La      (r a))
 (struct Addi    (rd rs i))
 (struct Sw      (r loc))
-(struct Lw      (r loc))
 (struct Syscall ())
 (struct Jr      (r))
 (struct Label   (l))

@@ -17,9 +17,13 @@
    (grammar
     (prog
      ((instr)            (list $1))
-     ((instr Lnl prog)   (cons $1 $3)))
+     ((instr Lnl prog)   (cons $1 $3))
+     ((instr Lnl)        (list $1)))
 
     (instr
+      ;test
+      ((Lnum)   (Pconst 'num $1))
+      ((operation) $1)
      ((Lvar Lassign sexpr)        (Passign $1 $3)))
 
     (sexpr ;; single-expr

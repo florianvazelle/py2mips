@@ -2,7 +2,8 @@
 
 (require "mips.rkt"
          "ast.rkt"
-         racket/match)
+         racket/match
+         racket/list) ;; pour flatten
 
 (provide compile2mips)
 
@@ -20,15 +21,34 @@
 
     ((Passign id val)
       (append
-       ;; on compile v pour avoir sa valeur dans v0 :
-       (comp val env fp-sp)
+       ;; on compile val pour avoir sa valeur dans v0 :
+       (list (comp val env fp-sp))
+
        ;; on empile la variable locale :
        (list (Addi 'sp 'sp -4)
              (Sw 'v0 (Mem 0 'sp)))
 
        ;; en associant n à son adresse dans la pile par rapport
        ;; à fp, pour que cette adresse soit fixe
-       (hash-set env id (Mem fp-sp 'fp))))
+       ;(hash-set env id (Mem fp-sp 'fp)))
+    ))
+
+    ((Pop op v1 v2)
+     (match op          ;; op match avec add, sub, mul et mod (valeur defini dans le parser, 'add $1 $3)
+      ('add (append
+        (comp v1 env fp-sp)
+        (list (Addi 'sp 'sp -4)
+              (Sw 'v0 (Mem 0 'sp)))
+        (comp v2 env fp-sp)
+        (list (Addi 'sp 'sp -4)
+              (Sw 'v0 (Mem 0 'sp)))
+        (list (Lw 't0 (Mem 4 'sp))
+              (Lw 't1 (Mem 0 'sp))
+              (Add 'v0 't0 't1))))
+      ('sub (- (comp v1 env fp-sp) (comp v2 env fp-sp)))
+      ('mul (* (comp v1 env fp-sp) (comp v2 env fp-sp)))
+      ('div (/ (comp v1 env fp-sp) (comp v2 env fp-sp)))
+      ('mod (modulo (comp v1 env fp-sp) (comp v2 env fp-sp)))))
 ))
 
 (define (mips-loc loc)
@@ -37,17 +57,18 @@
     ((Mem b r) (format "~a($~a)" b r))))
 
 (define (mips-emit instr)
+;(displayln instr)
   (match instr
     ((Move rd rs)   (printf "move $~a, $~a\n" rd rs))
     ((Li r i)       (printf "li $~a, ~a\n" r i))
     ((La r a)       (printf "la $~a, ~a\n" r (mips-loc a)))
     ((Addi rd rs i) (printf "addi $~a, $~a, ~a\n" rd rs i))
+    ((Add out val1 val2) (printf "add $~a, $~a, $~a\n" out val1 val2))
     ((Sw r loc)     (printf "sw $~a, ~a\n" r (mips-loc loc)))
     ((Lw r loc)     (printf "lw $~a, ~a\n" r (mips-loc loc)))
     ((Syscall)      (printf "syscall\n"))
     ((Jr r)         (printf "jr $~a\n" r))
     ((Label l)      (printf "\t~a:\n" l))))
-
 
 (define (mips-data data)
   (printf ".data\n")
@@ -56,13 +77,6 @@
       (printf "~a: .asciiz ~s\n" k v)))
   (printf "\n.text\n.globl main\nmain:\n"))
 
-(define (compile data env fp-sp)
-  (match data
-    ((list expr)
-     (comp expr env fp-sp))
-    ((list decl prog-rest)
-     (compile prog-rest (comp decl env fp-sp) fp-sp))))
-
 (define (compile2mips data env)
   (mips-data env)
   (for-each mips-emit
@@ -70,11 +84,12 @@
       ;; On initialise notre environnement local :
       (list (Move 'fp 'sp))
       ;; On compile une expression :
-      (comp data
-        ;; avec un environnement vide :
-        env
-        ;; et fp-sp = 0 (vu que fp = sp à ce moment là) :
-        0)
+      (flatten (map (lambda (i)
+            ;(displayln i)
+            (comp i env
+              ;; et fp-sp = 0 (vu que fp = sp à ce moment là) :
+              0))
+            data))
       ;; On affiche le résultat, qui est dans v0
       (list (Move 'a0 'v0)
             (Li 'v0 4) ;; 4 pour print_string qui est le type du résultat
