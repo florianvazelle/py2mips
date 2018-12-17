@@ -3,8 +3,13 @@
 (provide (all-defined-out))
 
 ;;;;; MIPS
-(struct Add     (out val1 val2)) ;; Add (with overflow)
 (struct Lw      (out src))       ;; Load word
+(struct Add     (out val1 val2)) ;; Add (with overflow)
+(struct Sub     (out val1 val2)) ;; Subtract
+(struct Mult    (val1 val2))
+(struct Div     (val1 val2))
+(struct Mflo    (out))
+(struct Mfhi    (out))
 
 
 (struct Move    (rd rs))

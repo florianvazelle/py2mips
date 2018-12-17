@@ -4,7 +4,7 @@
 	       "analyze.rkt"
 				 "compile.rkt")
 
-(define debug #f)
+(define debug #t)
 
 ;; debut du programme
 

@@ -24,6 +24,7 @@
       ;test
       ((Lnum)   (Pconst 'num $1))
       ((operation) $1)
+      ((Lvar)   (Pid $1))
      ((Lvar Lassign sexpr)        (Passign $1 $3)))
 
     (sexpr ;; single-expr

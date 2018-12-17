@@ -13,12 +13,16 @@
      (if (hash-has-key? env id) ;; renvoie true si elle existe
          #t
          (begin
-           (eprintf 'Analyze "Undefined variable: ~a" id)
+           (printf "Analyze: Undefined variable ~a\n" id)
            (exit 1))))
     ((Passign id val)
      (hash-set env id (analyze-instr val env)))
     ((Pop op v1 v2)
-     (and (analyze-instr v1 env) (analyze-instr v2 env)))
+     (if (and (analyze-instr v1 env) (analyze-instr v2 env))
+          env
+          (begin
+            (printf "Analyze: Operation impossible ~a ~a ~a\n" v1 op v2)
+            (exit 1))))
     ((Pcond op v1 v2)
     ;; au final pas besoin de tester cette egalite car deja fait par le parser
      (if (regexp? #px"and|or|==|!=|<|>|<=|>=")
