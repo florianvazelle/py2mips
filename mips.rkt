@@ -13,6 +13,14 @@
 
 (struct Com     (str))          ;; Commentaire
 
+;; Boolean
+(struct Beq     (val1 val2 offset))
+(struct Bne     (val1 val2 offset))
+(struct Blt     (val1 val2 offset))
+(struct Bgt     (val1 val2 offset))
+(struct Ble     (val1 val2 offset))
+(struct Bge     (val1 val2 offset))
+(struct B       (offset))
 
 (struct Move    (rd rs))
 (struct Li      (r i))

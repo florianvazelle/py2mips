@@ -29,8 +29,9 @@
          (list (comp val env))
 
          ;; on empile la variable locale :
-         (list (Addi 'sp 'sp -4)
-               (Sw 'v0 (Mem 0 'sp)))))
+         (list (Com (string-append "vardef " (symbol->string id)))
+           (Addi 'sp 'sp -4)
+           (Sw 'v0 (Mem 0 'sp)))))
 
     ((Pop op v1 v2)
       (append
@@ -58,41 +59,35 @@
               (Mfhi 'v0))))))
 
     ((Pcond id v1 v2)
-    (append
-      (comp v1 env)
-      (list (Move 't0 'v0))
-      (comp v2 env)
-      (match id          ;; op match avec add, sub, mul et mod (valeur defini dans le parser, 'add $1 $3)
-        ('==
-          (if (eq? ))
-          (list (Com "addition")
-            (Add 'v0 't0 'v0)))
-        ('!=
-          (list (Com "soustraction")
-            (Sub 'v0 't0 'v0)))
-        ('<
-          (list (Com "inferieur a")
-            (Slt 't0 'v0 't0)))
-        ('>
-          (list (Com "division")
-            (Div 't0 'v0)
-            (Mflo 'v0)))
-        ('<=
-          (list (Com "modulo")
-            (Div 't0 'v0)
-            (Mfhi 'v0)))
-        ('>=
-          (list (Com "modulo")
-            (Div 't0 'v0)
-            (Mfhi 'v0)))
-        ('and
-          (list (Com "modulo")
-             (Div 't0 'v0)
-             (Mfhi 'v0)))
-        ('or
-           (list (Com "modulo")
-             (Div 't0 'v0)
-             (Mfhi 'v0)))
+      (append
+        (comp v1 env)
+        (list (Move 't0 'v0))
+        (comp v2 env)
+        (match id
+          ('==
+            (list (Com "egale a")
+              (Beq 't0 'v0 'target)))
+          ('!=
+            (list (Com "n'est pas egale a")
+              (Bne 't0 'v0 'target)))
+          ('<
+            (list (Com "inferieur a")
+              (Blt 't0 'v0 'target)))
+          ('>
+            (list (Com "superieur a")
+              (Bgt 't0 'v0 'target)))
+          ('<=
+            (list (Com "inferieur ou egale a")
+              (Ble 't0 'v0 'target)))
+          ('>=
+            (list (Com "superieur ou egale a")
+              (Bge 't0 'v0 'target))))
+        (list (Li 'v0 0)
+          (B 'suite)
+          (Label 'target)
+          (Li 'v0 1)
+          (B 'suite)
+          (Label 'suite))))
   ))
 
 (define (mips-loc loc)
@@ -118,6 +113,15 @@
     ((Mfhi out)          (printf "mfhi $~a\n" out))
 
     ((Com str)      (printf "#~a\n" str))
+
+    ;; Boolean
+    ((Beq val1 val2 offset) (printf "beq $~a, $~a, ~a\n" val1 val2 offset))
+    ((Bne val1 val2 offset) (printf "bne $~a, $~a, ~a\n" val1 val2 offset))
+    ((Blt val1 val2 offset) (printf "blt $~a, $~a, ~a\n" val1 val2 offset))
+    ((Bgt val1 val2 offset) (printf "bgt $~a, $~a, ~a\n" val1 val2 offset))
+    ((Ble val1 val2 offset) (printf "ble $~a, $~a, ~a\n" val1 val2 offset))
+    ((Bge val1 val2 offset) (printf "bge $~a, $~a, ~a\n" val1 val2 offset))
+    ((B offset)             (printf "b ~a\n" offset))
 
     ((Sw r loc)     (printf "sw $~a, ~a\n" r (mips-loc loc)))
     ((Lw r loc)     (printf "lw $~a, ~a\n" r (mips-loc loc)))
