@@ -11,6 +11,8 @@
 (struct Mflo    (out))
 (struct Mfhi    (out))
 
+(struct Com     (str))          ;; Commentaire
+
 
 (struct Move    (rd rs))
 (struct Li      (r i))

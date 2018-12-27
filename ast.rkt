@@ -20,3 +20,13 @@
 
 ;;; Boolean
 (struct Pcond   (id v1 v2)   #:transparent)
+
+
+;;; Syntactic structures for our internal representation (AST)
+;;; ----------------------------------------------------------
+
+(struct Assign (id val)     #:transparent)
+(struct Const  (type value) #:transparent)
+(struct Op     (op v1 v2)   #:transparent)
+(struct Id     (id)         #:transparent)
+(struct Cond   (id v1 v2)   #:transparent)

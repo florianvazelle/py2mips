@@ -1,10 +1,6 @@
+# Test des operations
 a = 36 + 42 - 5
-#73
 b = a + 57
-#130
-c=(a - b)%a
-#16
+c=(b - a)%a
 c*8
-#128
 c/1
-#16

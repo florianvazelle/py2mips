@@ -17,12 +17,13 @@
   (Leof            ;; end of file
    Lif Lelif Lelse ;; if, elif, else
    Land Lor        ;; and or
+   Ltrue Lfalse   ;; true, false
    ))
 
 (define-empty-tokens operateurs
-  (Ladd Lsub Lmul Ldiv Lmod        ;; addition, soustraction, multiplication, division, modulo
-        Leq Lneq Llt Lgt Llte Lgte ;; ==, !=, <, >, <=, >=
-        Lassign        	        ;; =
+  (Ladd Lsub Lmul Ldiv Lmod         ;; addition, soustraction, multiplication, division, modulo
+        Leq Lneq Llt Lgt Llte Lgte  ;; ==, !=, <, >, <=, >=
+        Lassign        	            ;; =
 ))
 
 (define-empty-tokens fonctions
@@ -87,6 +88,9 @@
 
    ("and"      (token-Land))
    ("or"       (token-Lor))
+
+   ("True"     (token-Ltrue))
+   ("False"    (token-Lfalse))
 
    ;; other
    ("("        (token-Lopar))

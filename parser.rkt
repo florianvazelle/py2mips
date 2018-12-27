@@ -21,10 +21,14 @@
      ((instr Lnl)        (list $1)))
 
     (instr
-      ;test
+      ; tout se qui est la, est possible (on peut l'ecrire) mais inutile
+      ; en effet on ne stocke ni le chiffre, ni le resultat de l'operation
+      ; donc je vais noter ces operations inutiles pour quelle soit supprimer
+      ; dans un optimisateur
       ((Lnum)   (Pconst 'num $1))
       ((operation) $1)
       ((Lvar)   (Pid $1))
+
      ((Lvar Lassign sexpr)        (Passign $1 $3)))
 
     (sexpr ;; single-expr
@@ -33,9 +37,12 @@
      ((Lopar sexpr Lcpar) $2))
 
     (atom
-     ((Lstr)   (Pconst 'str $1)) ;; string or char
-     ((Lnum)   (Pconst 'num $1)) ;; nombre
-     ((Lvar)   (Pid $1)) ;; variable (deja existante)
+      ((Ltrue)  (#t))
+      ((Lfalse) (#f))
+
+      ((Lstr)   (Pconst 'str $1)) ;; string or char
+      ((Lnum)   (Pconst 'num $1)) ;; nombre
+      ((Lvar)   (Pid $1)) ;; variable (deja existante)
     )
 
     (operation

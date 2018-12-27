@@ -39,18 +39,60 @@
         (comp v2 env)
         (match op          ;; op match avec add, sub, mul et mod (valeur defini dans le parser, 'add $1 $3)
           ('add
-            (list (Add 'v0 't0 'v0)))
+            (list (Com "addition")
+              (Add 'v0 't0 'v0)))
           ('sub
-            (list (Sub 'v0 't0 'v0)))
+            (list (Com "soustraction")
+              (Sub 'v0 't0 'v0)))
           ('mul
-            (list (Mult 't0 'v0)
-                  (Mflo 'v0)))
+            (list (Com "multiplication")
+              (Mult 't0 'v0)
+              (Mflo 'v0)))
           ('div
-            (list (Div 't0 'v0)
-                  (Mflo 'v0)))
+            (list (Com "division")
+              (Div 't0 'v0)
+              (Mflo 'v0)))
           ('mod
-            (list (Div 't0 'v0)
-                  (Mfhi 'v0))))))
+            (list (Com "modulo")
+              (Div 't0 'v0)
+              (Mfhi 'v0))))))
+
+    ((Pcond id v1 v2)
+    (append
+      (comp v1 env)
+      (list (Move 't0 'v0))
+      (comp v2 env)
+      (match id          ;; op match avec add, sub, mul et mod (valeur defini dans le parser, 'add $1 $3)
+        ('==
+          (if (eq? ))
+          (list (Com "addition")
+            (Add 'v0 't0 'v0)))
+        ('!=
+          (list (Com "soustraction")
+            (Sub 'v0 't0 'v0)))
+        ('<
+          (list (Com "inferieur a")
+            (Slt 't0 'v0 't0)))
+        ('>
+          (list (Com "division")
+            (Div 't0 'v0)
+            (Mflo 'v0)))
+        ('<=
+          (list (Com "modulo")
+            (Div 't0 'v0)
+            (Mfhi 'v0)))
+        ('>=
+          (list (Com "modulo")
+            (Div 't0 'v0)
+            (Mfhi 'v0)))
+        ('and
+          (list (Com "modulo")
+             (Div 't0 'v0)
+             (Mfhi 'v0)))
+        ('or
+           (list (Com "modulo")
+             (Div 't0 'v0)
+             (Mfhi 'v0)))
   ))
 
 (define (mips-loc loc)
@@ -74,6 +116,8 @@
 
     ((Mflo out)          (printf "mflo $~a\n" out))
     ((Mfhi out)          (printf "mfhi $~a\n" out))
+
+    ((Com str)      (printf "#~a\n" str))
 
     ((Sw r loc)     (printf "sw $~a, ~a\n" r (mips-loc loc)))
     ((Lw r loc)     (printf "lw $~a, ~a\n" r (mips-loc loc)))

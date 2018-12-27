@@ -2,9 +2,10 @@
 
 (require "parser.rkt"
 	       "analyze.rkt"
-				 "compile.rkt")
+				 "compile.rkt"
+				 racket/list)
 
-(define debug #t)
+(define debug #f)
 
 ;; debut du programme
 
@@ -29,7 +30,7 @@
 	 (cond (debug (newline)))
 
    (analyze parsed (make-immutable-hash))
-   ;;(write prog)
+
    (cond (debug (printf "Typing ok.\n")))
 
 	 (compile2mips parsed (make-hash '((nl . "\n"))))
