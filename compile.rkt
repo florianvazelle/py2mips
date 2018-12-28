@@ -8,7 +8,7 @@
 
 (provide compile2mips)
 
-(define (comp ast env) ;; le décalage entre sp et fp est fp - sp
+(define (comp ast env fp-sp) ;; le décalage entre sp et fp est fp - sp
   (match ast
     ((Pconst type val)
      (match type
@@ -18,51 +18,66 @@
       ('num (list (Li 'v0 val)))))
 
     ((Pid id)
-      (list (Lw 'v0 (hash-ref env id))))
+      (list (Lw 'v0 (Mem (hash-ref env id) 'fp))))
       ;; Pour faire ceci (hash-ref env id) doit retoruner 0(sp) ou 4(sp) ...
 
     ((Passign id val)
-      (set! fp-sp (- fp-sp 4))
-      (hash-set! env id (Mem fp-sp 'fp))
-      (append
-         ;; on compile val pour avoir sa valeur dans v0 :
-         (list (comp val env))
+      (if (hash-has-key? env id)
+          (let ((tmp_sp-fp (hash-ref env id)))
+                (let ((decalage (- tmp_sp-fp global_fp-sp)))
+                     (list
+                        (comp val env (- global_fp-sp 4))
+                        (Com (string-append "redefinition de " (symbol->string id)))
+                        (Addi 'sp 'sp decalage)
+                        (Sw 'v0 (Mem 0 'sp))
+                        (Addi 'sp 'sp (- 0 decalage)))))
 
-         ;; on empile la variable locale :
-         (list (Com (string-append "vardef " (symbol->string id)))
-           (Addi 'sp 'sp -4)
-           (Sw 'v0 (Mem 0 'sp)))))
+          (begin
+            (set! global_fp-sp (- global_fp-sp 4))
+            (hash-set! env id global_fp-sp)
+            ;; on compile val pour avoir sa valeur dans v0 :
+            (list
+               (comp val env global_fp-sp)
+               ;; on empile la variable locale :
+               (Com (string-append "vardef " (symbol->string id)))
+               (Addi 'sp 'sp -4)
+               (Sw 'v0 (Mem 0 'sp))))))
 
     ((Pop op v1 v2)
-      (append
-        (comp v1 env)
-        (list (Move 't0 'v0))
-        (comp v2 env)
-        (match op          ;; op match avec add, sub, mul et mod (valeur defini dans le parser, 'add $1 $3)
-          ('add
-            (list (Com "addition")
-              (Add 'v0 't0 'v0)))
-          ('sub
-            (list (Com "soustraction")
-              (Sub 'v0 't0 'v0)))
-          ('mul
-            (list (Com "multiplication")
-              (Mult 't0 'v0)
-              (Mflo 'v0)))
-          ('div
-            (list (Com "division")
-              (Div 't0 'v0)
-              (Mflo 'v0)))
-          ('mod
-            (list (Com "modulo")
-              (Div 't0 'v0)
-              (Mfhi 'v0))))))
+        (append
+            (list ;; (if (struct? v1) (list (Move t0 v0)))
+              (Addi 'sp 'sp -4)                 ;; on decale sp
+              (comp v1 env (- fp-sp 4))         ;; on compile la premiere valeur
+              (Sw 'v0 (Mem 0 'sp))              ;; on empile la valeur v0 (resultat de la compilation de la premiere valeur)
+              (comp v2 env (- fp-sp 4))         ;; on compile la second valeur
+              (Lw 't0 (Mem fp-sp 'fp))          ;; on recupere la valeur, precedement empiler, dans t0
+              (Addi 'sp 'sp 4))                 ;; on remet sp a son etat initial
+
+            (match op          ;; op match avec add, sub, mul et mod (valeur defini dans le parser, 'add $1 $3)
+              ('add
+                (list (Com "addition")
+                  (Add 'v0 't0 'v0)))
+              ('sub
+                (list (Com "soustraction")
+                  (Sub 'v0 't0 'v0)))
+              ('mul
+                (list (Com "multiplication")
+                  (Mult 't0 'v0)
+                  (Mflo 'v0)))
+              ('div
+                (list (Com "division")
+                  (Div 't0 'v0)
+                  (Mflo 'v0)))
+              ('mod
+                (list (Com "modulo")
+                  (Div 't0 'v0)
+                  (Mfhi 'v0))))))
 
     ((Pcond id v1 v2)
       (append
-        (comp v1 env)
+        (comp v1 env fp-sp)
         (list (Move 't0 'v0))
-        (comp v2 env)
+        (comp v2 env fp-sp)
         (match id
           ('==
             (list (Com "egale a")
@@ -136,7 +151,7 @@
       (printf "~a: .asciiz ~s\n" k v)))
   (printf "\n.text\n.globl main\nmain:\n"))
 
-(define fp-sp 0)
+(define global_fp-sp 0)
 (define (compile2mips data env)
   (mips-data env)
   (hash-clear! env)
@@ -146,7 +161,7 @@
       (list (Move 'fp 'sp))
       ;; On compile une expression :
       (flatten (map (lambda (i)
-            (comp i env))
+            (comp i env global_fp-sp))
             data))
       ;; On affiche le résultat, qui est dans v0
       (list (Move 'a0 'v0)
