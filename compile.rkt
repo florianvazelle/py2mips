@@ -8,6 +8,25 @@
 
 (provide compile2mips)
 
+(define (comp-and ast env fp-sp)
+  ;; on veut obtenir un 1 ou un 0
+  (match ast
+    ((Pconst type val)
+      (match type
+        ('str (list (Li 'v0 1)))
+        ('num
+          (if (= val 0) ;; j'interprete un peu mais c'est pour une valeur fixe
+            (list (Li 'v0 0))
+            (list (Li 'v0 1))))))
+    ((Pid id)
+      (comp (Pcond '!= (Pid id) (Pconst 'num 0)) env fp-sp))
+    ((Pop op v1 v2)
+      (comp (Pcond '!= (Pop op v1 v2) (Pconst 'num 0)) env fp-sp))
+    ((Pcond id v1 v2)
+      (comp (Pcond id v1 v2) env fp-sp))
+    ((Pcondop id v1 v2)
+      (comp (Pcondop id v1 v2) env fp-sp))))
+
 (define (comp ast env fp-sp) ;; le décalage entre sp et fp est fp - sp
   (match ast
     ((Pconst type val)
@@ -45,7 +64,7 @@
 
     ((Pop op v1 v2)
         (append
-            (list ;; (if (struct? v1) (list (Move t0 v0)))
+            (list
               (Addi 'sp 'sp -4)                 ;; on decale sp
               (comp v1 env (- fp-sp 4))         ;; on compile la premiere valeur
               (Sw 'v0 (Mem 0 'sp))              ;; on empile la valeur v0 (resultat de la compilation de la premiere valeur)
@@ -74,35 +93,73 @@
                   (Mfhi 'v0))))))
 
     ((Pcond id v1 v2)
+      (set! offset (+ offset 1))
       (append
-        (comp v1 env fp-sp)
-        (list (Move 't0 'v0))
-        (comp v2 env fp-sp)
+        (list
+          (Addi 'sp 'sp -4)
+          (comp v1 env (- fp-sp 4))
+          (Sw 'v0 (Mem 0 'sp))
+          (comp v2 env (- fp-sp 4))
+          (Lw 't0 (Mem fp-sp 'fp))
+          (Addi 'sp 'sp 4))
+
         (match id
           ('==
             (list (Com "egale a")
-              (Beq 't0 'v0 'target)))
+              (Beq 't0 'v0 (string-append "target" (number->string offset)))))
           ('!=
             (list (Com "n'est pas egale a")
-              (Bne 't0 'v0 'target)))
+              (Bne 't0 'v0 (string-append "target" (number->string offset)))))
           ('<
             (list (Com "inferieur a")
-              (Blt 't0 'v0 'target)))
+              (Blt 't0 'v0 (string-append "target" (number->string offset)))))
           ('>
             (list (Com "superieur a")
-              (Bgt 't0 'v0 'target)))
+              (Bgt 't0 'v0 (string-append "target" (number->string offset)))))
           ('<=
             (list (Com "inferieur ou egale a")
-              (Ble 't0 'v0 'target)))
+              (Ble 't0 'v0 (string-append "target" (number->string offset)))))
           ('>=
             (list (Com "superieur ou egale a")
-              (Bge 't0 'v0 'target))))
+              (Bge 't0 'v0 (string-append "target" (number->string offset))))))
+
         (list (Li 'v0 0)
-          (B 'suite)
-          (Label 'target)
+          (B (string-append "suite" (number->string offset)))
+          (Label (string-append "target" (number->string offset)))
           (Li 'v0 1)
-          (B 'suite)
-          (Label 'suite))))
+          (B (string-append "suite" (number->string offset)))
+          (Label (string-append "suite" (number->string offset))))))
+
+    ((Pcondop id v1 v2)
+      (append
+        (list (Com " Debut Pcondop")
+          (Addi 'sp 'sp -4)
+          (comp-and v1 env (- fp-sp 4))
+          (Sw 'v0 (Mem 0 'sp))
+          (comp-and v2 env (- fp-sp 4))
+          (Lw 't0 (Mem fp-sp 'fp))
+          (Addi 'sp 'sp 4))
+
+        (match id
+          ('and
+            (set! offset (+ offset 1))
+            (list (Com "et")
+              (Li 't1 1)
+              (Beq 'v0 't1 (string-append "target_" (number->string offset)))
+              (Li 'v0 0)
+              (B (string-append "suite" (number->string offset)))
+              (Label (string-append "target_" (number->string offset)))
+              (Beq 't0 't1 (string-append "target" (number->string offset)))))
+          ('or
+            (list (Com "ou"))))
+
+        (list (Li 'v0 0)
+          (B (string-append "suite" (number->string offset)))
+          (Label (string-append "target" (number->string offset)))
+          (Li 'v0 1)
+          (B (string-append "suite" (number->string offset)))
+          (Label (string-append "suite" (number->string offset))))))
+
   ))
 
 (define (mips-loc loc)
@@ -127,7 +184,7 @@
     ((Mflo out)          (printf "mflo $~a\n" out))
     ((Mfhi out)          (printf "mfhi $~a\n" out))
 
-    ((Com str)      (printf "#~a\n" str))
+    ((Com str)      (printf "\t#~a\n" str))
 
     ;; Boolean
     ((Beq val1 val2 offset) (printf "beq $~a, $~a, ~a\n" val1 val2 offset))
@@ -152,6 +209,7 @@
   (printf "\n.text\n.globl main\nmain:\n"))
 
 (define global_fp-sp 0)
+(define offset 0)
 (define (compile2mips data env)
   (mips-data env)
   (hash-clear! env)

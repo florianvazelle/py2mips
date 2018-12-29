@@ -21,6 +21,9 @@
 ;;; Boolean
 (struct Pcond   (id v1 v2)   #:transparent)
 
+;;; And et Or
+(struct Pcondop (id v1 v2)   #:transparent)
+
 
 ;;; Syntactic structures for our internal representation (AST)
 ;;; ----------------------------------------------------------

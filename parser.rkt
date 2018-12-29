@@ -37,8 +37,8 @@
      ((Lopar sexpr Lcpar) $2))
 
     (atom
-      ((Ltrue)  (#t))
-      ((Lfalse) (#f))
+      ((Ltrue)  (1))
+      ((Lfalse) (0))
 
       ((Lstr)   (Pconst 'str $1)) ;; string or char
       ((Lnum)   (Pconst 'num $1)) ;; nombre
@@ -59,8 +59,8 @@
      ((sexpr Llte sexpr) (Pcond '<= $1 $3))
      ((sexpr Lgte sexpr) (Pcond '>= $1 $3))
 
-     ((sexpr Land sexpr) (Pcond 'and $1 $3))
-     ((sexpr Lor sexpr)  (Pcond 'or  $1 $3))
+     ((sexpr Land sexpr) (Pcondop 'and $1 $3))
+     ((sexpr Lor sexpr)  (Pcondop 'or  $1 $3))
     ))
 
    (precs

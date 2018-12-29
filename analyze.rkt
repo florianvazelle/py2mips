@@ -49,7 +49,7 @@
               (printf "Analyze: Operation impossible entre different type: ~a ~a ~a\n" t1 op t2)
               (exit 1))))))
 
-    ((Pcond id v1 v2)
+    ((or (Pcond id v1 v2) (Pcondop id v1 v2))
      (cons (Cond id (analyze-instr v1 env) (analyze-instr v2 env)) env))
 
 ))
