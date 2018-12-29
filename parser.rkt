@@ -37,8 +37,8 @@
      ((Lopar sexpr Lcpar) $2))
 
     (atom
-      ((Ltrue)  (1))
-      ((Lfalse) (0))
+      ((Ltrue)  (Pconst 'num 1))
+      ((Lfalse) (Pconst 'num 0))
 
       ((Lstr)   (Pconst 'str $1)) ;; string or char
       ((Lnum)   (Pconst 'num $1)) ;; nombre

@@ -8,8 +8,9 @@
 
 (provide compile2mips)
 
-(define (comp-and ast env fp-sp)
+(define (comp-and-or ast env fp-sp)
   ;; on veut obtenir un 1 ou un 0
+  ;; la fonction va nous servir a "compiler" les expressions en boolean
   (match ast
     ((Pconst type val)
       (match type
@@ -134,9 +135,9 @@
       (append
         (list (Com " Debut Pcondop")
           (Addi 'sp 'sp -4)
-          (comp-and v1 env (- fp-sp 4))
+          (comp-and-or v1 env (- fp-sp 4))
           (Sw 'v0 (Mem 0 'sp))
-          (comp-and v2 env (- fp-sp 4))
+          (comp-and-or v2 env (- fp-sp 4))
           (Lw 't0 (Mem fp-sp 'fp))
           (Addi 'sp 'sp 4))
 
@@ -149,16 +150,25 @@
               (Li 'v0 0)
               (B (string-append "suite" (number->string offset)))
               (Label (string-append "target_" (number->string offset)))
-              (Beq 't0 't1 (string-append "target" (number->string offset)))))
+              (Beq 't0 't1 (string-append "target" (number->string offset)))
+              (Li 'v0 0)
+                (B (string-append "suite" (number->string offset)))
+                (Label (string-append "target" (number->string offset)))
+                (Li 'v0 1)
+                (B (string-append "suite" (number->string offset)))
+                (Label (string-append "suite" (number->string offset)))))
           ('or
-            (list (Com "ou"))))
-
-        (list (Li 'v0 0)
-          (B (string-append "suite" (number->string offset)))
-          (Label (string-append "target" (number->string offset)))
-          (Li 'v0 1)
-          (B (string-append "suite" (number->string offset)))
-          (Label (string-append "suite" (number->string offset))))))
+            (set! offset (+ offset 1))
+            (list (Com "ou")
+              (Li 't1 1)
+              (Beq 'v0 't1 (string-append "target" (number->string offset)))
+              (Beq 't0 't1 (string-append "target" (number->string offset)))
+              (Li 'v0 0)
+              (B (string-append "suite" (number->string offset)))
+              (Label (string-append "target" (number->string offset)))
+              (Li 'v0 1)
+              (B (string-append "suite" (number->string offset)))
+              (Label (string-append "suite" (number->string offset))))))))
 
   ))
 
