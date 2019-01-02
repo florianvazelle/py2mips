@@ -5,7 +5,7 @@
 				 "compile.rkt"
 				 racket/list)
 
-(define debug #f)
+(define debug #t)
 
 ;; debut du programme
 
@@ -29,11 +29,14 @@
    (cond (debug (write parsed)))
 	 (cond (debug (newline)))
 
-   (analyze parsed (make-immutable-hash))
+   (define analyzed (call-analyze parsed (make-immutable-hash)))
 
    (cond (debug (printf "Typing ok.\n")))
 
-	 (compile2mips parsed (make-hash '((nl . "\n"))))
+	 (cond (debug (write analyzed)))
+	 (cond (debug (newline)))
+
+	 ;(compile2mips parsed (make-hash '((nl . "\n"))))
 
    ;; on quitte
    (exit 0)

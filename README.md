@@ -1,0 +1,1 @@
+Pour que mon code puisse savoir quand est ce qu'un if se ferme, je vais a travers l'analyseur semantique, rajouter a la premier instruction (ligne) une struct End qui va avoir pour parametre le nombre de "endif" qu'il symbolise et en deuxiemen parametre la structure de l'instruction.

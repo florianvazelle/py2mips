@@ -18,18 +18,26 @@
     (prog
      ((instr)            (list $1))
      ((instr Lnl prog)   (cons $1 $3))
-     ((instr Lnl)        (list $1)))
+     ((instr Lnl)        (list $1))
+     ((tab prog)         (cons $1 $2)))
+
+    (tab
+      ((Ltab) (Ptab)))
 
     (instr
       ; tout se qui est la, est possible (on peut l'ecrire) mais inutile
       ; en effet on ne stocke ni le chiffre, ni le resultat de l'operation
       ; donc je vais noter ces operations inutiles pour quelle soit supprimer
       ; dans un optimisateur
-      ((Lnum)   (Pconst 'num $1))
+      ((Lnum)      (Pconst 'num $1))
       ((operation) $1)
-      ((Lvar)   (Pid $1))
+      ((Lvar)      (Pid $1))
 
-     ((Lvar Lassign sexpr)        (Passign $1 $3)))
+     ((Lvar Lassign sexpr)        (Passign $1 $3))
+
+     ((Lif sexpr Lcol)            (Pif $2))
+     ((Lelif sexpr Lcol)          (Pelif $2))
+     ((Lelse sexpr Lcol)          (Pelse $2)))
 
     (sexpr ;; single-expr
      ((atom)              $1)

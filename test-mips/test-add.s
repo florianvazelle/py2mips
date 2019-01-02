@@ -397,11 +397,13 @@ addi $sp, $sp, -4
 sw $v0, 0($sp)
 	# Debut Pcondop
 addi $sp, $sp, -4
+	# Debut Pcondop
+addi $sp, $sp, -4
 addi $sp, $sp, -4
 li $v0, 4
 sw $v0, 0($sp)
-li $v0, 9
-lw $t0, -36($fp)
+li $v0, 4
+lw $t0, -40($fp)
 addi $sp, $sp, 4
 	#n'est pas egale a
 bne $t0, $v0, target24
@@ -416,7 +418,7 @@ addi $sp, $sp, -4
 li $v0, 4
 sw $v0, 0($sp)
 li $v0, 5
-lw $t0, -36($fp)
+lw $t0, -40($fp)
 addi $sp, $sp, 4
 	#egale a
 beq $t0, $v0, target25
@@ -426,7 +428,7 @@ b suite25
 li $v0, 1
 b suite25
 	suite25:
-lw $t0, -32($fp)
+lw $t0, -36($fp)
 addi $sp, $sp, 4
 	#ou
 li $t1, 1
@@ -438,10 +440,23 @@ b suite26
 li $v0, 1
 b suite26
 	suite26:
+sw $v0, 0($sp)
+li $v0, 1
+lw $t0, -32($fp)
+addi $sp, $sp, 4
+	#ou
+li $t1, 1
+beq $v0, $t1, target27
+beq $t0, $t1, target27
+li $v0, 0
+b suite27
+	target27:
+li $v0, 1
+b suite27
+	suite27:
 	#vardef d1
 addi $sp, $sp, -4
 sw $v0, 0($sp)
-
 move $a0, $v0
 li $v0, 1
 syscall

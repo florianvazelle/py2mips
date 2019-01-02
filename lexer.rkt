@@ -65,7 +65,8 @@
   (lexer-src-pos
    ((eof)        (token-Leof))
 
-   (#\tab	       (token-Ltab))
+   (#\tab	       (token-Ltab)) ;; ne marche
+   ("    "       (token-Ltab))
    (#\newline	   (token-Lnl))
    (#\space      (return-without-pos (mylexer input-port)))
 
@@ -73,10 +74,10 @@
    ;("while"    (token-Lwhile))
 
    ;; condition
-   ;("if"       (token-Lif))
-   ;("elif"     (token-Lelif))
-   ;("else"     (token-Lelse))
-   ;(":"        (token-Lcol))
+   ("if"       (token-Lif))
+   ("elif"     (token-Lelif))
+   ("else"     (token-Lelse))
+   (":"        (token-Lcol))
 
    ;; boolean
    ("=="       (token-Leq))
@@ -108,8 +109,8 @@
    ;; assignement
    ("="        (token-Lassign))
 
-   (number   (token-Lnum (string->number lexeme)))
-   (variable (token-Lvar (string->symbol lexeme)))
+   (number     (token-Lnum (string->number lexeme)))
+   (variable   (token-Lvar (string->symbol lexeme)))
 
    (any-char     (begin
                    (eprintf "Lexer: ~a: unrecognized char at line ~a col ~a.\n"
