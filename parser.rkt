@@ -29,15 +29,16 @@
       ; en effet on ne stocke ni le chiffre, ni le resultat de l'operation
       ; donc je vais noter ces operations inutiles pour quelle soit supprimer
       ; dans un optimisateur
-      ((Lnum)      (Pconst 'num $1))
-      ((operation) $1)
-      ((Lvar)      (Pid $1))
+      ((sexpr)      $1)
+      ;((Lnum)      (Pconst 'num $1))
+      ;((operation) $1)
+      ;((Lvar)      (Pid $1))
 
      ((Lvar Lassign sexpr)        (Passign $1 $3))
 
      ((Lif sexpr Lcol)            (Pif $2))
      ((Lelif sexpr Lcol)          (Pelif $2))
-     ((Lelse sexpr Lcol)          (Pelse $2)))
+     ((Lelse Lcol)                (Pelse)))
 
     (sexpr ;; single-expr
      ((atom)              $1)

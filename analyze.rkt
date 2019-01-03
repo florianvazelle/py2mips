@@ -141,6 +141,7 @@
           (let ((l_bool (car (analyze-instr bool env))))
                (begin
                  (set! indentation (+ indentation 1))
+                 (displayln "here if")
                  (cons (If l_bool) env)))
           (let ((res (verify-tab indentation nbind)))
                (let ((l_bool (car (analyze-instr bool env))))
@@ -151,6 +152,42 @@
                             [(< res 0)
                              ((printf "Analyze: Probleme d'indentation: Une tablature en trop.\n")
                               (exit 1))]))))))
+
+    ((Pelif bool)
+      (if instr-is-verify
+          (let ((l_bool (car (analyze-instr bool env))))
+               (begin
+                 (set! indentation (+ indentation 1))
+                 (displayln "here elif")
+                 (cons (Elif l_bool) env)))
+          (let ((res (verify-tab indentation nbind)))
+               (let ((l_bool (car (analyze-instr bool env))))
+                    (begin
+                      (set! indentation (+ indentation 1))
+                      (cond [(= res 0)
+                             ((printf "Analyze: Mauvaise utilisation du 'elif'.\n")
+                              (exit 1))]
+                            [(> res 0) (cons (End res (Elif l_bool)) env)]
+                            [(< res 0)
+                             ((printf "Analyze: Probleme d'indentation: Une tablature en trop.\n")
+                              (exit 1))]))))))
+
+    ((Pelse)
+     (if instr-is-verify
+         (begin
+           (set! indentation (+ indentation 1))
+           (displayln "here else")
+           (cons (Else) env))
+         (let ((res (verify-tab indentation nbind)))
+              (begin
+                (set! indentation (+ indentation 1))
+                (cond [(= res 0)
+                       ((printf "Analyze: Mauvaise utilisation du 'else'.\n")
+                        (exit 1))]
+                      [(> res 0) (cons (End res (Else)) env)]
+                      [(< res 0)
+                       ((printf "Analyze: Probleme d'indentation: Une tablature en trop.\n")
+                        (exit 1))])))))
 
 ))
 

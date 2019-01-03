@@ -27,7 +27,7 @@
 ;; Condition
 (struct Pif   (bool)   #:transparent)
 (struct Pelif (bool)   #:transparent)
-(struct Pelse (bool)   #:transparent)
+(struct Pelse ()       #:transparent)
 
 ;; Tablature
 (struct Ptab  ()   #:transparent)
@@ -42,5 +42,7 @@
 (struct Id     (id)         #:transparent)
 (struct Cond   (id v1 v2)   #:transparent)
 (struct Condop (id v1 v2)   #:transparent)
-(struct If     (id)         #:transparent)
+(struct If     (bool)       #:transparent)
+(struct Elif   (bool)       #:transparent)
+(struct Else   ()           #:transparent)
 (struct End    (nb struct)  #:transparent)
