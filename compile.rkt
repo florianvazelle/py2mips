@@ -8,40 +8,42 @@
 
 (provide compile2mips)
 
+(struct Data-If (local label) #:transparent)
+
 (define (comp-and-or ast env fp-sp)
   ;; on veut obtenir un 1 ou un 0
   ;; la fonction va nous servir a "compiler" les expressions en boolean
   (match ast
-    ((Pconst type val)
+    ((Const type val)
       (match type
         ('str (list (Li 'v0 1)))
         ('num
           (if (= val 0) ;; j'interprete un peu mais c'est pour une valeur fixe
             (list (Li 'v0 0))
             (list (Li 'v0 1))))))
-    ((Pid id)
-      (comp (Pcond '!= (Pid id) (Pconst 'num 0)) env fp-sp))
-    ((Pop op v1 v2)
-      (comp (Pcond '!= (Pop op v1 v2) (Pconst 'num 0)) env fp-sp))
-    ((Pcond id v1 v2)
-      (comp (Pcond id v1 v2) env fp-sp))
-    ((Pcondop id v1 v2)
-      (comp (Pcondop id v1 v2) env fp-sp))))
+    ((Id id)
+      (comp (Cond '!= (Id id) (Const 'num 0)) env fp-sp))
+    ((Op op v1 v2)
+      (comp (Cond '!= (Op op v1 v2) (Const 'num 0)) env fp-sp))
+    ((Cond id v1 v2)
+      (comp (Cond id v1 v2) env fp-sp))
+    ((Condop id v1 v2)
+      (comp (Condop id v1 v2) env fp-sp))))
 
 (define (comp ast env fp-sp) ;; le décalage entre sp et fp est fp - sp
   (match ast
-    ((Pconst type val)
+    ((Const type val)
      (match type
       ;; Pointeur dans .data mis dans v0
       ('str (list (La 'v0 (Lbl val))))
       ;; Constante entière mise dans v0
       ('num (list (Li 'v0 val)))))
 
-    ((Pid id)
+    ((Id id)
       (list (Lw 'v0 (Mem (hash-ref env id) 'fp))))
       ;; Pour faire ceci (hash-ref env id) doit retoruner 0(sp) ou 4(sp) ...
 
-    ((Passign id val)
+    ((Assign id val)
       (if (hash-has-key? env id)
           (let ((tmp_sp-fp (hash-ref env id)))
                 (let ((decalage (- tmp_sp-fp global_fp-sp)))
@@ -63,7 +65,7 @@
                (Addi 'sp 'sp -4)
                (Sw 'v0 (Mem 0 'sp))))))
 
-    ((Pop op v1 v2)
+    ((Op op v1 v2)
         (append
             (list
               (Addi 'sp 'sp -4)                 ;; on decale sp
@@ -93,7 +95,7 @@
                   (Div 't0 'v0)
                   (Mfhi 'v0))))))
 
-    ((Pcond id v1 v2)
+    ((Cond id v1 v2)
       (set! offset (+ offset 1))
       (append
         (list
@@ -131,9 +133,9 @@
           (B (string-append "suite" (number->string offset)))
           (Label (string-append "suite" (number->string offset))))))
 
-    ((Pcondop id v1 v2)
+    ((Condop id v1 v2)
       (append
-        (list (Com " Debut Pcondop")
+        (list (Com " Debut Condop")
           (Addi 'sp 'sp -4)
           (comp-and-or v1 env (- fp-sp 4))
           (Sw 'v0 (Mem 0 'sp))
@@ -169,6 +171,131 @@
               (Li 'v0 1)
               (B (string-append "suite" (number->string offset)))
               (Label (string-append "suite" (number->string offset))))))))
+
+    ((If bool)
+     (set! offset_if (+ offset_if 1))
+     (set! offset (+ offset 1))
+
+     (let ([label (string-append "suite" (number->string offset) "_" (number->string offset_if))])
+          (begin
+            (hash-set! env_if offset_if (Data-If 0 label))
+            (list
+              (comp bool env fp-sp)
+              (Beq 'v0 'zero (string-append label "_0"))))))
+
+    ((End diff struct)
+     (let ([data (hash-ref env_if offset_if)]
+           [id offset_if])
+
+          (match data
+            ((Data-If local label)
+              (set! offset_if (- id diff))                      ;; on met a jour l'offset du if
+
+              (match struct
+
+                ((Elif bool)
+                 (if (= local -1)
+                     (let ([data (hash-ref env_if offset_if)]
+                           [id offset_if])
+
+                          (match data
+                            ((Data-If local o_label)
+                            (hash-set! env_if id (Data-If (+ local 1) o_label))
+                            (append
+                              (list
+                                (Label label)
+                                (B o_label) ;; on pointe vers la fin du if
+                                (Label (string-append o_label "_" (number->string local)))) ;; on ajoute le pointeur du if ou elif precedent
+
+                              (for/list ([i (in-range id offset_if -1)])
+                                (let ([tmp (hash-ref env_if i)])
+                                     (match tmp
+                                       ((Data-If local label)
+                                            (append
+                                              (if (>= local 0) (list (Label (string-append label "_" (number->string local)))) '())
+                                              (list (Label label)))))))
+
+                              (list (comp bool env fp-sp)                                    ;; on compile la condition
+                              (Beq 'v0 'zero (string-append o_label "_" (number->string (+ local 1)))))))))
+
+                   (begin
+                     (hash-set! env_if id (Data-If (+ local 1) label))
+                     (append
+                       (list
+                         (B label) ;; on pointe vers la fin du if
+                         (Label (string-append label "_" (number->string local)))) ;; on ajoute le pointeur du if ou elif precedent
+
+                       (for/list ([i (in-range id offset_if -1)])
+                         (let ([tmp (hash-ref env_if i)])
+                              (match tmp
+                                ((Data-If local label)
+                                     (append
+                                       (if (>= local 0) (list (Label (string-append label "_" (number->string local)))) '())
+                                       (list (Label label)))))))
+
+                       (list (comp bool env fp-sp)                                    ;; on compile la condition
+                       (Beq 'v0 'zero (string-append label "_" (number->string (+ local 1))))))))) ;; on teste si la condition est vraie ou fausse
+
+                ((Else)
+                (if (= local -1)
+                    (let ([data (hash-ref env_if offset_if)]
+                          [id offset_if])
+
+                         (match data
+                           ((Data-If local o_label)
+                           (hash-set! env_if id (Data-If -1 o_label))
+                           (append
+                             (list
+                               (Label label)
+                               (B o_label) ;; on pointe vers la fin du if
+                               (Label (string-append o_label "_" (number->string local)))) ;; on ajoute le pointeur du if ou elif precedent
+
+                               (for/list ([i (in-range id offset_if -1)])
+                                 (let ([tmp (hash-ref env_if i)])
+                                      (match tmp
+                                        ((Data-If local label)
+                                             (append
+                                               (if (>= local 0) (list (Label (string-append label "_" (number->string local)))) '())
+                                               (list (Label label)))))))))))
+                (begin
+                 (hash-set! env_if id (Data-If -1 label))
+                 (append
+                   (list
+                     (B label) ;; on pointe vers la fin du if
+                     (Label (string-append label "_" (number->string local)))) ;; on ajoute le pointeur du if ou elif precedent
+
+                     (for/list ([i (in-range id offset_if -1)])
+                       (let ([tmp (hash-ref env_if i)])
+                            (match tmp
+                              ((Data-If local label)
+                                   (append
+                                     (if (>= local 0) (list (Label (string-append label "_" (number->string local)))) '())
+                                     (list (Label label)))))))
+
+                     (let ([tmp (hash-ref env_if offset_if)])
+                          (match tmp
+                              ((Data-If local label)
+                               (hash-set! env_if offset_if (Data-If -1 label))
+                               (append
+                                  (if (>= local 0) (list (Label (string-append label "_" (number->string local)))) '())))))))))
+
+                (_
+                  (printf "#~a ~a\n" struct local)
+                 ;;(hash-remove! env_if id)
+                  (append
+                    (if (>= local 0) (list (Label (string-append label "_" (number->string local)))) '()) ;; il a deja eu un ou plusieurs elif
+                    (list (Label label))
+
+                    (for/list ([i (in-range (- id 1) offset_if -1)])
+                      (let ([tmp (hash-ref env_if i)])
+                           (match tmp
+                             ((Data-If local label)
+                               (append
+                                 (if (>= local 0) (list (Label (string-append label "_" (number->string local)))) '())
+                                 (list (Label label)))))))
+
+
+                      (list (comp struct env fp-sp)))))))))
 
   ))
 
@@ -220,6 +347,9 @@
 
 (define global_fp-sp 0)
 (define offset 0)
+(define offset_if 0)
+(define env_if (make-hash))
+
 (define (compile2mips data env)
   (mips-data env)
   (hash-clear! env)
@@ -231,6 +361,15 @@
       (flatten (map (lambda (i)
             (comp i env global_fp-sp))
             data))
+
+            (flatten (for/list ([i (in-range offset_if 0 -1)])
+              (let ([tmp (hash-ref env_if i)])
+                   (match tmp
+                     ((Data-If local label)
+                          (append
+                            (if (>= local 0) (list (Label (string-append label "_" (number->string local)))) '())
+                            (list (Label label))))))))
+
       ;; On affiche le résultat, qui est dans v0
       (list (Move 'a0 'v0)
             (Li 'v0 1) ;; 4 pour print_string qui est le type du résultat

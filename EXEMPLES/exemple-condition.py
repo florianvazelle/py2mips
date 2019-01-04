@@ -15,6 +15,6 @@ if (True):
     else:
         b
 if True:
-    0
+    2
 elif True:
     truc = 0

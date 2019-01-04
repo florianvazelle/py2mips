@@ -167,7 +167,7 @@
                       (cond [(= res 0)
                              ((printf "Analyze: Mauvaise utilisation du 'elif'.\n")
                               (exit 1))]
-                            [(> res 0) (cons (End res (Elif l_bool)) env)]
+                            [(> res 0) (cons (End (- res 1) (Elif l_bool)) env)]
                             [(< res 0)
                              ((printf "Analyze: Probleme d'indentation: Une tablature en trop.\n")
                               (exit 1))]))))))
@@ -184,7 +184,7 @@
                 (cond [(= res 0)
                        ((printf "Analyze: Mauvaise utilisation du 'else'.\n")
                         (exit 1))]
-                      [(> res 0) (cons (End res (Else)) env)]
+                      [(> res 0) (cons (End (- res 1) (Else)) env)]
                       [(< res 0)
                        ((printf "Analyze: Probleme d'indentation: Une tablature en trop.\n")
                         (exit 1))])))))

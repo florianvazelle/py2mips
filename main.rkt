@@ -5,7 +5,7 @@
 				 "compile.rkt"
 				 racket/list)
 
-(define debug #t)
+(define debug #f)
 
 ;; debut du programme
 
@@ -36,7 +36,7 @@
 	 (cond (debug (write analyzed)))
 	 (cond (debug (newline)))
 
-	 ;(compile2mips parsed (make-hash '((nl . "\n"))))
+	 (compile2mips analyzed (make-hash '((nl . "\n"))))
 
    ;; on quitte
    (exit 0)
