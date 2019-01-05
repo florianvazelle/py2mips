@@ -36,7 +36,7 @@
 	 (cond (debug (write analyzed)))
 	 (cond (debug (newline)))
 
-	 (compile2mips analyzed (make-hash '((nl . "\n"))))
+	 (compile2mips (car analyzed) (make-hash (append (list (cons 'nl "\n")) (cdr analyzed))))
 
    ;; on quitte
    (exit 0)

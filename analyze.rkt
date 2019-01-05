@@ -50,11 +50,27 @@
                   ((printf "Analyze: Probleme d'indentation: Une tablature en trop.\n")
                    (exit 1))]))))
 
+(define (return-const type val)
+  (match type
+    ('str
+      (let ([lbl (string-append "label" (number->string offset))])
+        (set! last-env (append last-env (list (cons lbl val))))
+        (set! offset (+ offset 1))
+        (Const 'str lbl)))
+    ('num (Const type val))))
+
 (define (analyze-instr instr env)
   (match instr
 
     ((Pconst type val)
-     (call-verify-tab (Const type val) env))
+      (if instr-is-verify
+          (cons (return-const type val) env)
+          (let ((res (verify-tab indentation nbind)))
+               (cond [(= res 0) (cons (return-const type val) env)]
+                     [(> res 0) (cons (End res (return-const type val)) env)]
+                     [(< res 0)
+                      ((printf "Analyze: Probleme d'indentation: Une tablature en trop.\n")
+                       (exit 1))]))))
 
     ((Pid id)
      (if (hash-has-key? env id) ;; renvoie true si elle existe
@@ -141,7 +157,6 @@
           (let ((l_bool (car (analyze-instr bool env))))
                (begin
                  (set! indentation (+ indentation 1))
-                 (displayln "here if")
                  (cons (If l_bool) env)))
           (let ((res (verify-tab indentation nbind)))
                (let ((l_bool (car (analyze-instr bool env))))
@@ -158,7 +173,6 @@
           (let ((l_bool (car (analyze-instr bool env))))
                (begin
                  (set! indentation (+ indentation 1))
-                 (displayln "here elif")
                  (cons (Elif l_bool) env)))
           (let ((res (verify-tab indentation nbind)))
                (let ((l_bool (car (analyze-instr bool env))))
@@ -176,7 +190,6 @@
      (if instr-is-verify
          (begin
            (set! indentation (+ indentation 1))
-           (displayln "here else")
            (cons (Else) env))
          (let ((res (verify-tab indentation nbind)))
               (begin
@@ -194,6 +207,8 @@
 (define indentation 0)
 (define nbind 0)
 (define instr-is-verify #f)
+(define last-env '())
+(define offset 0)
 
 (define (analyze prog env)
   (set! instr-is-verify #f)
@@ -205,7 +220,7 @@
           (list (car res-decl) (analyze prog-rest (cdr res-decl)))))))
 
 (define (call-analyze prog env)
-  (let ((res-prog (flatten (analyze prog env))))
-       (map (lambda (i)
-              (if (null? i) (remove '() res-prog) i))
-            res-prog)))
+  (let ([res-prog (flatten (analyze prog env))])
+       (cons (map (lambda (i)
+                (if (null? i) (remove '() res-prog) i))
+             res-prog) last-env)))

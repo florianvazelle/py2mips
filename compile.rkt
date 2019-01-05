@@ -40,7 +40,6 @@
       ('num (list (Li 'v0 val)))))
 
     ((Id id)
-      (displayln env)
       (list (Lw 'v0 (Mem (hash-ref env id) 'fp))))
       ;; Pour faire ceci (hash-ref env id) doit retoruner 0(sp) ou 4(sp) ...
 
@@ -181,7 +180,7 @@
           (begin
             (hash-set! env_if offset_if (Data-If 0 label))
             (list
-              (comp bool env (- fp-sp 4))
+              (comp-and-or bool env (- fp-sp 4))
               (Beq 'v0 'zero (string-append label "_0"))))))
 
     ((End diff struct)
@@ -216,7 +215,7 @@
                                               (if (>= local 0) (list (Label (string-append label "_" (number->string local)))) '())
                                               (list (Label label)))))))
 
-                              (list (comp bool env (- fp-sp 4))                                    ;; on compile la condition
+                              (list (comp-and-or bool env (- fp-sp 4))                                    ;; on compile la condition
                               (Beq 'v0 'zero (string-append o_label "_" (number->string (+ local 1)))))))))
 
                    (begin
@@ -234,7 +233,7 @@
                                        (if (>= local 0) (list (Label (string-append label "_" (number->string local)))) '())
                                        (list (Label label)))))))
 
-                       (list (comp bool env (- fp-sp 4))                                    ;; on compile la condition
+                       (list (comp-and-or bool env (- fp-sp 4))                                    ;; on compile la condition
                        (Beq 'v0 'zero (string-append label "_" (number->string (+ local 1))))))))) ;; on teste si la condition est vraie ou fausse
 
                 ((Else)
@@ -281,8 +280,6 @@
                                   (if (>= local 0) (list (Label (string-append label "_" (number->string local)))) '())))))))))
 
                 (_
-                  (printf "#~a ~a\n" struct local)
-                 ;;(hash-remove! env_if id)
                   (append
                     (if (>= local 0) (list (Label (string-append label "_" (number->string local)))) '()) ;; il a deja eu un ou plusieurs elif
                     (list (Label label))
